@@ -6,9 +6,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      "/api": "https://api.langflow.astra.datastax.com", // Replace with your actual Langflow API URL
-      changeOrigin: true,
-      secure: false,
+      "/api": {
+        target: "https://api.langflow.astra.datastax.com", // Replace with the base URL of your API
+        changeOrigin: true, // Ensures the host header matches the target
+        secure: true, // Use false if your target uses self-signed SSL certificates
+        rewrite: (path) => path.replace(/^\/api/, ""), // Rewrite the path to remove "/api" prefix
+      },
     },
   },
 });

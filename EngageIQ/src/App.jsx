@@ -17,30 +17,41 @@ const App = () => {
 
   const handleGenerate = async () => {
     try {
+      // Get the email input value
+      const userEmail = document.getElementById("UserEmail").value;
+      // const query = `username is ${userEmail} and ${customQuestion}`;
+      const query = `${customQuestion}`;
+  
+      // Log the constructed query to the console
+      console.log("Constructed Query:", query);
+  
+      // Call the LangflowClient's `runFlow` method
       await langflowClient.runFlow(
         flowIdOrName,
         langflowId,
-        customQuestion,
-        "chat",
-        "chat",
-        {},
+        query, // Pass the constructed query
+        "chat", // Mode
+        "chat", // Interaction type
+        {}, // Parameters object
         false, // stream = false for non-streaming
         (data) => {
-          console.log("Update:", data);
-        }, // onUpdate
+          console.log("Update:", data); // Handle intermediate updates if any
+        },
         (message) => {
-          console.log("Close:", message);
-        }, // onClose
+          console.log("Close:", message); // Handle closure
+        },
         (error) => {
-          console.error("Error:", error);
-        } // onError
+          console.error("Error:", error); // Handle errors
+        }
       );
-      setShowGraphs(true); // Assuming success, show the graphs
+  
+      setShowGraphs(true); // Show graphs on success
     } catch (error) {
       console.error("Error during Langflow API call:", error.message);
       alert("An error occurred while generating the flow. Please try again.");
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
@@ -94,14 +105,12 @@ const App = () => {
             </span>
             <button
               onClick={() => setIsAdvanced(!isAdvanced)}
-              className={`relative inline-flex h-8 w-12 items-center rounded-full ${
-                isAdvanced ? "bg-blue-600" : "bg-gray-600"
-              }`}
+              className={`relative inline-flex h-8 w-12 items-center rounded-full ${isAdvanced ? "bg-blue-600" : "bg-gray-600"
+                }`}
             >
               <span
-                className={`${
-                  isAdvanced ? "translate-x-6" : "translate-x-1"
-                } inline-block h-5 w-5 transform rounded-full bg-white transition-transform`}
+                className={`${isAdvanced ? "translate-x-6" : "translate-x-1"
+                  } inline-block h-5 w-5 transform rounded-full bg-white transition-transform`}
               ></span>
             </button>
           </div>
