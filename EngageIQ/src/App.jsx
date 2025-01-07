@@ -1,12 +1,45 @@
 import React, { useState } from "react";
+import LangflowClient from "./components/LangflowClient"; // Import LangflowClient
 
 const App = () => {
   const [isAdvanced, setIsAdvanced] = useState(false);
   const [customQuestion, setCustomQuestion] = useState("");
   const [showGraphs, setShowGraphs] = useState(false);
 
-  const handleGenerate = () => {
-    setShowGraphs(true);
+  // Initialize LangflowClient with the necessary parameters
+  const langflowClient = new LangflowClient(
+    "/api", // Proxy URL, should match your vite proxy config
+    "AstraCS:HUwLTOlOLBGgBkUZahZEZeJF:713d0a3f668c0c0483afac18ff15c93072ec3624eeff818f5f6295521a216957" // Your token
+  );
+
+  const flowIdOrName = "0b52bae4-2480-486c-8f56-39ffd996c7f4";
+  const langflowId = "a0e03fb4-0bd2-4a8e-8c97-87d09c3e9075";
+
+  const handleGenerate = async () => {
+    try {
+      await langflowClient.runFlow(
+        flowIdOrName,
+        langflowId,
+        customQuestion,
+        "chat",
+        "chat",
+        {},
+        false, // stream = false for non-streaming
+        (data) => {
+          console.log("Update:", data);
+        }, // onUpdate
+        (message) => {
+          console.log("Close:", message);
+        }, // onClose
+        (error) => {
+          console.error("Error:", error);
+        } // onError
+      );
+      setShowGraphs(true); // Assuming success, show the graphs
+    } catch (error) {
+      console.error("Error during Langflow API call:", error.message);
+      alert("An error occurred while generating the flow. Please try again.");
+    }
   };
 
   return (
@@ -73,32 +106,29 @@ const App = () => {
             </button>
           </div>
 
-          {isAdvanced && (
-            <>
-              <div className="mb-6">
-                <label
-                  htmlFor="customQuestion"
-                  className="block text-sm font-medium text-gray-300"
-                >
-                  Custom Question:
-                </label>
-                <input
-                  type="text"
-                  id="customQuestion"
-                  value={customQuestion}
-                  onChange={(e) => setCustomQuestion(e.target.value)}
-                  placeholder="Enter your custom question"
-                  className="mt-3 w-full rounded-md border border-gray-600 bg-gray-900 text-white shadow-sm sm:text-sm py-3 px-4 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <button
-                onClick={handleGenerate}
-                className="w-full py-3 px-6 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                Generate
-              </button>
-            </>
-          )}
+          <div className="mb-6">
+            <label
+              htmlFor="customQuestion"
+              className="block text-sm font-medium text-gray-300"
+            >
+              Custom Question:
+            </label>
+            <input
+              type="text"
+              id="customQuestion"
+              value={customQuestion}
+              onChange={(e) => setCustomQuestion(e.target.value)}
+              placeholder="Enter your custom question"
+              className="mt-3 w-full rounded-md border border-gray-600 bg-gray-900 text-white shadow-sm sm:text-sm py-3 px-4 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <button
+            onClick={handleGenerate}
+            className="w-full py-3 px-6 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Generate
+          </button>
 
           {showGraphs && (
             <div className="grid grid-cols-2 gap-4 mt-8">
