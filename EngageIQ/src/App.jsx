@@ -5,6 +5,7 @@ const App = () => {
   const [isAdvanced, setIsAdvanced] = useState(false);
   const [customQuestion, setCustomQuestion] = useState("");
   const [showGraphs, setShowGraphs] = useState(false);
+  const [initResponse, setInitResponse] = useState(null); // State for init response
 
   // Initialize LangflowClient with the necessary parameters
   const langflowClient = new LangflowClient(
@@ -19,14 +20,10 @@ const App = () => {
     try {
       // Get the email input value
       const userEmail = document.getElementById("UserEmail").value;
-      // const query = `username is ${userEmail} and ${customQuestion}`;
       const query = `${customQuestion}`;
-  
-      // Log the constructed query to the console
-      console.log("Constructed Query:", query);
-  
+
       // Call the LangflowClient's `runFlow` method
-      await langflowClient.runFlow(
+      const response = await langflowClient.runFlow(
         flowIdOrName,
         langflowId,
         query, // Pass the constructed query
@@ -44,14 +41,15 @@ const App = () => {
           console.error("Error:", error); // Handle errors
         }
       );
-  
+
+      console.log("Init Response:", response);
+      setInitResponse(response); // Store init response in state
       setShowGraphs(true); // Show graphs on success
     } catch (error) {
       console.error("Error during Langflow API call:", error.message);
       alert("An error occurred while generating the flow. Please try again.");
     }
   };
-  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
@@ -138,6 +136,15 @@ const App = () => {
           >
             Generate
           </button>
+
+          {initResponse?.outputs?.[0]?.outputs?.[0]?.artifacts?.message ? (
+            <p className="text-sm text-gray-300 whitespace-pre-wrap">
+              {initResponse.outputs[0].outputs[0].artifacts.message}
+            </p>
+          ) : (
+            <p className="text-sm text-gray-300">No message available in artifacts.</p>
+          )}
+
 
           {showGraphs && (
             <div className="grid grid-cols-2 gap-4 mt-8">

@@ -220,7 +220,7 @@ class LangflowClient {
         stream,
         tweaks
       );
-      console.log("Init Response:", initResponse);
+      // console.log("Init Response:", initResponse);
       if (
         stream &&
         initResponse &&
