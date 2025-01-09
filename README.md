@@ -1,6 +1,6 @@
 # 📊 EngageIQ
 
-EngageIQ is a powerful social media analysis tool designed to provide insights into user engagement on platforms like Instagram. By leveraging data visualization and machine learning, EngageIQ offers detailed analytics on post performance, user interactions, and content recommendations.
+EngageIQ is a powerful social media analysis tool designed to provide insights into user engagement on platforms like Instagram. By leveraging data visualization and machine learning, EngageIQ offers detailed analytics on post performance, user interactions, and content recommendations using Datastax and Lagflow.
 
 ---
 
@@ -19,7 +19,8 @@ EngageIQ is a powerful social media analysis tool designed to provide insights i
 - **Frontend**: React, Recharts for data visualization, and Tailwind CSS for styling.
 - **Backend**: Python, Django, AstraDB for data storage, and Sentence Transformers for vectorization.
 - **Data Processing**: BeautifulSoup for HTML parsing and data extraction.
-
+- **DataStax Astra DB**: DataStax Astra DB for database operations.
+- **LangFlow**: Langflow for workflow creation and GPT integration.
 ---
 
 ## 🚀 Setup Instructions
