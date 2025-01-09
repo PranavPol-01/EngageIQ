@@ -1,55 +1,139 @@
-import React, { useState } from "react";
-import LangflowClient from "./components/LangflowClient"; // Import LangflowClient
+import React, { useState, useEffect } from "react";
+import {
+  BarChart,
+  Bar,
+  Tooltip,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Legend,
+  CartesianGrid,
+  LineChart,
+  Line,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  PieChart,
+  Pie,
+} from "recharts";
 
 const App = () => {
-  const [isAdvanced, setIsAdvanced] = useState(false);
-  const [customQuestion, setCustomQuestion] = useState("");
+  const [postTypeData, setPostTypeData] = useState([]);
+  const [topPostsData, setTopPostsData] = useState([]);
   const [showGraphs, setShowGraphs] = useState(false);
-  const [initResponse, setInitResponse] = useState(null); // State for init response
+  const [metricCorrelationData, setMetricCorrelationData] = useState([]);
+  const [insights, setInsights] = useState({});
+  const [recommendations, setRecommendations] = useState([]);
 
-  // Initialize LangflowClient with the necessary parameters
-  const langflowClient = new LangflowClient(
-    "/api", // Proxy URL, should match your vite proxy config
-    "AstraCS:HUwLTOlOLBGgBkUZahZEZeJF:713d0a3f668c0c0483afac18ff15c93072ec3624eeff818f5f6295521a216957" // Your token
-  );
+  // Raw response data
+  const response = `Answer: Based on the provided JSON data, here are the stats for Reels by the username "beerbiceps":
+Total Reels: 20
+Total Likes: 31,420,000
+Total Shares: 61,419
+Total Comments: 71,319
+Average Engagement Rate: 34.5% (calculated using the provided formula)
+Insights:
+The Reels by "beerbiceps" have a high average engagement rate of 34.5%.
+The top-performing Reel has 28,800 shares and an engagement rate of 35.7%.
+The Reel with the most likes is the one with 3,200,000 likes.
+Data for Graphs:
+Post Type Analysis:
+json
 
-  const flowIdOrName = "0b52bae4-2480-486c-8f56-39ffd996c7f4";
-  const langflowId = "a0e03fb4-0bd2-4a8e-8c97-87d09c3e9075";
+{
+  "Post Type": ["Reel"],
+  "Average Engagement Rate": [34.5],
+  "Average Likes": [1632000],
+  "Average Shares": [3064.5],
+  "Average Comments": [3565.95]
+}
+Top Posts:
+json
 
-  const handleGenerate = async () => {
-    try {
-      // Get the email input value
-      const userEmail = document.getElementById("UserEmail").value;
-      const query = `${customQuestion}`;
+{
+  "Post ID": ["CuzjwhOgwtg"],
+  "Caption": ["Unavailable"],
+  "Post Type": ["Reel"],
+  "Likes": [2800000],
+  "Shares": [28800],
+  "Comments": [0],
+  "Engagement Rate": [35.7]
+}
+Metric Correlation:
+json
 
-      // Call the LangflowClient's `runFlow` method
-      const response = await langflowClient.runFlow(
-        flowIdOrName,
-        langflowId,
-        query, // Pass the constructed query
-        "chat", // Mode
-        "chat", // Interaction type
-        {}, // Parameters object
-        false, // stream = false for non-streaming
-        (data) => {
-          console.log("Update:", data); // Handle intermediate updates if any
-        },
-        (message) => {
-          console.log("Close:", message); // Handle closure
-        },
-        (error) => {
-          console.error("Error:", error); // Handle errors
-        }
-      );
+{
+  "Likes vs. Shares": [0.95],
+  "Shares vs. Engagement Rate": [0.85],
+  "Comments vs. Engagement Rate": [0.78]
+}
+Recommendations:
+Continue creating engaging Reels with high-quality content to maintain a high engagement rate.
+Analyze the top-performing Reel to understand the factors contributing to its success.
+Consider experimenting with different post types to diversify engagement and reach.`;
 
-      console.log("Init Response:", response);
-      setInitResponse(response); // Store init response in state
-      setShowGraphs(true); // Show graphs on success
-    } catch (error) {
-      console.error("Error during Langflow API call:", error.message);
-      alert("An error occurred while generating the flow. Please try again.");
+  // Function to extract relevant data from the response string
+  const extractDataFromResponse = () => {
+    const postTypeSection = response.match(/Data for Graphs:\s*Post Type Analysis:\s*json\s*({.*?})/s)?.[1];
+    const topPostsSection = response.match(/Top Posts:\s*json\s*({.*?})/s)?.[1];
+    const metricCorrelationSection = response.match(/Metric Correlation:\s*json\s*({.*?})/s)?.[1];
+    const insightsSection = response.match(/Insights:\s*(.*?)Recommendations:/s)?.[1];
+    const recommendationsSection = response.match(/Recommendations:\s*(.*)$/s)?.[1];
+
+    if (postTypeSection && topPostsSection && metricCorrelationSection && insightsSection && recommendationsSection) {
+      try {
+        const postTypeJson = JSON.parse(postTypeSection.trim());
+        const topPostsJson = JSON.parse(topPostsSection.trim());
+        const metricCorrelationJson = JSON.parse(metricCorrelationSection.trim());
+
+        // Set state with formatted data
+        const formattedPostTypeData = postTypeJson["Post Type"].map((type, index) => ({
+          postType: type,
+          averageEngagementRate: postTypeJson["Average Engagement Rate"][index],
+          averageLikes: postTypeJson["Average Likes"][index],
+          averageShares: postTypeJson["Average Shares"][index],
+          averageComments: postTypeJson["Average Comments"][index],
+        }));
+
+        const formattedTopPostsData = topPostsJson["Post ID"].map((id, index) => ({
+          postID: id,
+          caption: topPostsJson["Caption"][index],
+          postType: topPostsJson["Post Type"][index],
+          likes: topPostsJson["Likes"][index],
+          shares: topPostsJson["Shares"][index],
+          comments: topPostsJson["Comments"][index],
+          engagementRate: topPostsJson["Engagement Rate"][index],
+        }));
+
+        const formattedMetricCorrelationData = Object.keys(metricCorrelationJson).map(key => ({
+          metric: key,
+          value: metricCorrelationJson[key][0],
+        }));
+
+        // Extract insights and recommendations
+        const extractedInsights = insightsSection.trim();
+        const extractedRecommendations = recommendationsSection.trim().split("\n").map(rec => rec.trim());
+
+        // Set state with the formatted data and insights
+        setPostTypeData(formattedPostTypeData);
+        setTopPostsData(formattedTopPostsData);
+        setMetricCorrelationData(formattedMetricCorrelationData);
+        setInsights(extractedInsights); // Set insights
+        setRecommendations(extractedRecommendations); // Set recommendations
+        setShowGraphs(true);
+      } catch (error) {
+        console.error("Error parsing JSON:", error);
+      }
+    } else {
+      console.error("Failed to extract valid sections. Check if response format is correct.");
     }
   };
+
+  useEffect(() => {
+    extractDataFromResponse();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
@@ -58,23 +142,7 @@ const App = () => {
           <div className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white">EngageIQ</h1>
-              <p className="mt-1.5 text-sm text-gray-400">
-                Insights-Driven Social Media Analysis
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <button
-                className="inline-flex items-center justify-center gap-1.5 rounded bg-gray-800 px-5 py-3 text-white transition hover:bg-gray-700 focus:outline-none focus:ring"
-                type="button"
-              >
-                <span className="text-sm font-medium">View Demonstration</span>
-              </button>
-              <button
-                className="inline-block rounded bg-indigo-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-indigo-700 focus:outline-none focus:ring"
-                type="button"
-              >
-                GitHub Repository
-              </button>
+              <p className="mt-1.5 text-sm text-gray-400">Insights-Driven Social Media Analysis</p>
             </div>
           </div>
         </div>
@@ -82,84 +150,88 @@ const App = () => {
 
       <main className="px-4">
         <div className="max-w-2xl mx-auto p-8 bg-gray-800 rounded-lg shadow-md mt-8">
-          <div>
-            <label
-              htmlFor="UserEmail"
-              className="block text-sm font-medium text-gray-300"
-            >
-              Email
-            </label>
-            <input
-              type="email"
-              id="UserEmail"
-              placeholder="john@rhcp.com"
-              className="mt-3 w-full rounded-md border border-gray-600 bg-gray-900 text-white shadow-sm sm:text-sm py-3 px-4 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div className="flex items-center justify-between my-6">
-            <span className="text-sm font-medium text-gray-300">
-              Advanced Settings:
-            </span>
-            <button
-              onClick={() => setIsAdvanced(!isAdvanced)}
-              className={`relative inline-flex h-8 w-12 items-center rounded-full ${isAdvanced ? "bg-blue-600" : "bg-gray-600"
-                }`}
-            >
-              <span
-                className={`${isAdvanced ? "translate-x-6" : "translate-x-1"
-                  } inline-block h-5 w-5 transform rounded-full bg-white transition-transform`}
-              ></span>
-            </button>
-          </div>
-
-          <div className="mb-6">
-            <label
-              htmlFor="customQuestion"
-              className="block text-sm font-medium text-gray-300"
-            >
-              Custom Question:
-            </label>
-            <input
-              type="text"
-              id="customQuestion"
-              value={customQuestion}
-              onChange={(e) => setCustomQuestion(e.target.value)}
-              placeholder="Enter your custom question"
-              className="mt-3 w-full rounded-md border border-gray-600 bg-gray-900 text-white shadow-sm sm:text-sm py-3 px-4 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <button
-            onClick={handleGenerate}
-            className="w-full py-3 px-6 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Generate
-          </button>
-
-          {initResponse?.outputs?.[0]?.outputs?.[0]?.artifacts?.message ? (
-            <p className="text-sm text-gray-300 whitespace-pre-wrap">
-              {initResponse.outputs[0].outputs[0].artifacts.message}
-            </p>
-          ) : (
-            <p className="text-sm text-gray-300">No message available in artifacts.</p>
-          )}
-
-
           {showGraphs && (
-            <div className="grid grid-cols-2 gap-4 mt-8">
-              <div className="h-48 bg-blue-500 text-white flex items-center justify-center rounded-lg font-bold">
-                Graph 1
+            <div className="mt-8">
+              <h2 className="text-xl font-bold text-white mb-4">Insights & Graphs</h2>
+
+              {/* Insights Card */}
+              <div className="max-w-2xl mx-auto p-6 bg-gray-700 rounded-lg shadow-lg mt-8">
+                <h3 className="text-lg font-semibold text-white mb-4">Reels Insights</h3>
+                <div className="text-sm text-gray-400">
+                  <p>{insights}</p>
+                </div>
               </div>
-              <div className="h-48 bg-green-500 text-white flex items-center justify-center rounded-lg font-bold">
-                Graph 2
+
+              {/* Recommendations Card */}
+              <div className="max-w-2xl mx-auto p-6 bg-gray-700 rounded-lg shadow-lg mt-8">
+                <h3 className="text-lg font-semibold text-white mb-4">Recommendations</h3>
+                <div className="text-sm text-gray-400">
+                  {recommendations.length > 0 ? (
+                    <ul className="list-disc pl-5">
+                      {recommendations.map((rec, index) => (
+                        <li key={index}>{rec}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No recommendations available.</p>
+                  )}
+                </div>
               </div>
-              <div className="h-48 bg-yellow-500 text-white flex items-center justify-center rounded-lg font-bold">
-                Graph 3
-              </div>
-              <div className="h-48 bg-red-500 text-white flex items-center justify-center rounded-lg font-bold">
-                Graph 4
-              </div>
+
+              {/* Bar Chart for Post Type Analysis */}
+              {postTypeData.length > 0 && (
+                <div className="mt-8">
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {postTypeData.map((data, index) => (
+                      <div key={index} className="bg-gray-700 p-6 rounded-lg shadow-lg">
+                        <h3 className="text-xl font-semibold text-white mb-4">{data.postType}</h3>
+                        <div className="text-sm text-gray-400">
+                          <p><strong>Average Engagement Rate:</strong> {data.averageEngagementRate}%</p>
+                          <p><strong>Average Likes:</strong> {data.averageLikes.toLocaleString()}</p>
+                          <p><strong>Average Shares:</strong> {data.averageShares.toLocaleString()}</p>
+                          <p><strong>Average Comments:</strong> {data.averageComments.toLocaleString()}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Top Posts Data */}
+              {topPostsData.length > 0 ? (
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-white mb-4">Top Posts - Engagement (Likes & Shares)</h3>
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {topPostsData.map((post, index) => (
+                      <div key={index} className="bg-gray-700 p-6 rounded-lg shadow-lg">
+                        <h4 className="text-xl font-semibold text-white mb-4">{post.postID}</h4>
+                        <div className="text-sm text-gray-400">
+                          <p><strong>Likes:</strong> {post.likes.toLocaleString()}</p>
+                          <p><strong>Shares:</strong> {post.shares.toLocaleString()}</p>
+                          <p><strong>Engagement Rate:</strong> {post.engagementRate}%</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p>No top posts available.</p>
+              )}
+
+              {/* Radar Chart for Metric Correlation */}
+              {metricCorrelationData.length > 0 && (
+                <div className="mt-8">
+                  <div className="bg-gray-700 p-6 rounded-lg shadow-lg">
+                    <RadarChart cx="50%" cy="50%" outerRadius="80%" width={300} height={300} data={metricCorrelationData}>
+                      <PolarGrid />
+                      <PolarAngleAxis dataKey="metric" />
+                      <PolarRadiusAxis angle={30} domain={[0, 1]} />
+                      <Radar name="Metrics" dataKey="value" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+                    </RadarChart>
+                    <p className="mt-4 text-sm text-gray-400">Correlation between metrics (Higher values indicate stronger correlation)</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
