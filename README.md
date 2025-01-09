@@ -69,10 +69,11 @@ Steps for a bare minimum demo:
 
 ### Backend Setup (Optional for Advanced Features)
 
-1. **📥 Clone the Repository**
+1. **📥 Navigate to Server Repository**
 
    ```bash
-   git clone https://github.com/adilns786/SocialServer.git
+   cd ..
+   cd SocialServer/
    ```
 
 2. **🌐 Create a Virtual Environment**
