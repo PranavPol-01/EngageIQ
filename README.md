@@ -2,6 +2,8 @@
 
 EngageIQ is a powerful social media analysis tool designed to provide insights into user engagement on platforms like Instagram. By leveraging data visualization and machine learning, EngageIQ offers detailed analytics on post performance, user interactions, and content recommendations.
 
+---
+
 ## ✨ Features
 
 - **📈 Post Type Analysis**: Visualize the performance of different post types (e.g., reels, posts, carousels) using line charts.
@@ -10,27 +12,42 @@ EngageIQ is a powerful social media analysis tool designed to provide insights i
 - **🔗 Metric Correlation**: Analyze the correlation between different engagement metrics using bar charts.
 - **💡 Insights and Recommendations**: Provide actionable insights and recommendations to improve social media strategy.
 
+---
+
 ## 🛠️ Technologies Used
 
 - **Frontend**: React, Recharts for data visualization, and Tailwind CSS for styling.
 - **Backend**: Python, Django, AstraDB for data storage, and Sentence Transformers for vectorization.
 - **Data Processing**: BeautifulSoup for HTML parsing and data extraction.
 
+---
+
 ## 🚀 Setup Instructions
 
 ### Prerequisites
 
-- Node.js and npm
-- Python 3.x
-- Virtualenv (optional but recommended)
-- AstraDB account and token
+- Node.js and npm (required for the frontend)
+- Python 3.x (optional for backend functionality)
+- AstraDB account and token (optional for advanced features)
+
+---
+
+### 📝 Note for a Bare Minimum Working Model
+
+For a **basic working demo** of EngageIQ, you only need to pull the EngageIQ website and run the frontend on `localhost`. The server and AstraDB setup are **not required** for this version.
+
+Steps for a bare minimum demo:
+1. Follow the **Frontend Setup** instructions below.
+2. Open the app in your browser and explore the static functionalities.
+
+---
 
 ### Frontend Setup
 
 1. **📥 Clone the Repository**
 
    ```bash
-   git clone https://github.com/yourusername/engageiq.git
+   git clone https://github.com/darshan1137/engageiq.git
    cd engageiq/EngageIQ
    ```
 
@@ -48,12 +65,14 @@ EngageIQ is a powerful social media analysis tool designed to provide insights i
 
    The application will be available at `http://localhost:3000`.
 
-### Backend Setup
+---
 
-1. **📂 Navigate to the Server Directory**
+### Backend Setup (Optional for Advanced Features)
+
+1. **📥 Clone the Repository**
 
    ```bash
-   cd ../SocialServer
+   git clone https://github.com/adilns786/SocialServer.git
    ```
 
 2. **🌐 Create a Virtual Environment**
@@ -76,6 +95,7 @@ EngageIQ is a powerful social media analysis tool designed to provide insights i
    ```plaintext
    ASTRA_DB_TOKEN=your_astra_db_token
    ASTRA_DB_URL=your_astra_db_url
+   INSTAGRAM_COOKIES=your insta account cookies
    ```
 
 5. **▶️ Run the Backend Server**
@@ -86,19 +106,21 @@ EngageIQ is a powerful social media analysis tool designed to provide insights i
 
    The backend server will be available at `http://localhost:8000`.
 
+---
+
 ## 🖥️ Usage
 
 1. Open the frontend application in your browser.
 2. Enter a username to analyze their social media engagement.
 3. Click "Generate Insights" to view the analysis and recommendations.
 
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please fork the repository and submit a pull request for any improvements or bug fixes.
 
-## 📜 License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## 📧 Contact
 
