@@ -125,4 +125,4 @@ Contributions are welcome! Please fork the repository and submit a pull request 
 
 ## 📧 Contact
 
-For any questions or feedback, please contact [your-email@example.com](mailto:adilns786@gmail.com).
+For any questions or feedback, please contact [adilns786@gmail.com](mailto:adilns786@gmail.com).
