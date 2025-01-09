@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import LangflowClient from "../components/LangflowClient";
-import Graphs from "../components/Graphs";
 
 const CustomQuestion = () => {
   const [customQuestion, setCustomQuestion] = useState("");
@@ -9,7 +8,7 @@ const CustomQuestion = () => {
   const [metricCorrelation, setMetricCorrelation] = useState([]);
   const [topPost, setTopPost] = useState(null);
   const [showGraphs, setShowGraphs] = useState(false);
-  const [insights, setInsights] = useState({});
+  const [insights, setInsights] = useState("");
   const [recommendations, setRecommendations] = useState([]);
   const [averages, setAverages] = useState({});
 
@@ -21,7 +20,7 @@ const CustomQuestion = () => {
   const flowIdOrName = "0b52bae4-2480-486c-8f56-39ffd996c7f4";
   const langflowId = "a0e03fb4-0bd2-4a8e-8c97-87d09c3e9075";
 
-   const handleGenerate = async () => {
+  const handleGenerate = async () => {
     setLoading(true);
     try {
       const response = await langflowClient.runFlow(
@@ -36,59 +35,31 @@ const CustomQuestion = () => {
         (message) => console.log("Close:", message),
         (error) => console.error("Error:", error)
       );
-  
+
       const responseText = response.outputs?.[0]?.outputs?.[0]?.outputs?.message?.message?.text || "";
-  
-      // Extract Post Type Analysis
-      const postTypeMatch = responseText.match(/Post Type Analysis:\*\*\s*```json\s*(\{.*?\})\s*```/s);
-      if (postTypeMatch) {
-        const postTypeAnalysis = JSON.parse(postTypeMatch[1]);
-        setPostTypeData(
-          postTypeAnalysis.metrics.likes.map((_, index) => ({
-            index: index + 1,
-            likes: postTypeAnalysis.metrics.likes[index],
-            shares: postTypeAnalysis.metrics.shares[index],
-            comments: postTypeAnalysis.metrics.comments[index],
-          }))
-        );
-        calculateAverages(postTypeAnalysis.metrics);
+      console.log("Response Text:", responseText);
+
+      // Extract Insights - Looking for "Insights:**" followed by everything until "Data for Graphs:"
+      const insightsMatch = responseText.match(/Insights:\*\*\s*(.*?)\s*(?=Data for Graphs:|Recommendations:|$)/s);
+      if (insightsMatch) {
+        setInsights(insightsMatch[1].trim()); // Set insights if found
       } else {
-        console.warn("Post Type Analysis not found in the response.");
+        setInsights(""); // Set to empty if no insights section is found
       }
-  
-      // Extract Top Post
-      const topPostMatch = responseText.match(/Top Post:\*\*\s*```json\s*(\{.*?\})\s*```/s);
-      if (!topPostMatch || !topPostMatch[1]) {
-        throw new Error("Top Post data is missing or malformed.");
-      }
-    
-      const topPostData = JSON.parse(topPostMatch[1]);
-      setTopPost(topPostData);
-  
-      // Extract Metric Correlation
-      const metricCorrelationMatch = responseText.match(/Metric Correlation:\*\*\s*```json\s*(\{.*?\})\s*```/s);
-      if (metricCorrelationMatch) {
-        const metricCorrelationData = JSON.parse(metricCorrelationMatch[1]);
-        setMetricCorrelation(
-          Object.entries(metricCorrelationData).map(([key, value]) => ({
-            metric: key,
-            correlation: value,
-          }))
-        );
+
+      // Extract Recommendations - Looking for "Recommendations:**" and everything after it
+      const recommendationsMatch = responseText.match(/Recommendations:\*\*\s*(.*)$/s);
+      if (recommendationsMatch) {
+        const extractedRecommendations = recommendationsMatch[1].trim().split("\n").map((rec) => rec.trim());
+        setRecommendations(extractedRecommendations);
       } else {
-        console.warn("Metric Correlation not found in the response.");
+        setRecommendations([]); // Set to empty array if no recommendations section is found
       }
-  
-      // Extract Insights
-      const insightsSection = responseText.match(/Insights:\*\*\s*(.*?)(?=Data for Graphs:)/s)?.[1] || "";
-      setInsights(insightsSection.trim());
-  
-      // Extract Recommendations
-      const recommendationsSection = responseText.match(/Recommendations:\*\*\s*(.*)$/s)?.[1] || "";
-      const extractedRecommendations = recommendationsSection.trim().split("\n").map((rec) => rec.trim());
-      setRecommendations(extractedRecommendations);
-  
-      // Show Graphs
+
+      console.log("Insights:", insights);
+      console.log("Recommendations:", recommendations);
+
+      // Show Graphs if needed
       setShowGraphs(true);
     } catch (error) {
       console.error("Error during generation:", error);
@@ -97,24 +68,6 @@ const CustomQuestion = () => {
       setLoading(false);
     }
   };
-  const calculateAverages = (metrics) => {
-    const safeAverage = (arr) => (Array.isArray(arr) && arr.length > 0
-      ? arr.reduce((a, b) => a + b, 0) / arr.length
-      : 0);
-  
-    const averageLikes = safeAverage(metrics.likes);
-    const averageShares = safeAverage(metrics.shares);
-    const averageComments = safeAverage(metrics.comments);
-    const averageEngagement = safeAverage(metrics.engagement_rate);
-  
-    setAverages({
-      likes: averageLikes.toFixed(2),
-      shares: averageShares.toFixed(2),
-      comments: averageComments.toFixed(2),
-      engagement_rate: averageEngagement.toFixed(2),
-    });
-  };
-  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
@@ -145,14 +98,40 @@ const CustomQuestion = () => {
             </button>
           </div>
         ) : (
-          <Graphs
-            postTypeData={postTypeData}
-            metricCorrelation={metricCorrelation}
-            topPost={topPost}
-            insights={insights}
-            recommendations={recommendations}
-            averages={averages}
-          />
+          <>
+            {/* Insights */}
+            <div className="max-w-2xl mx-auto p-6 bg-gray-700 rounded-lg shadow-lg mt-8">
+              <h3 className="text-lg font-semibold text-white mb-4">Insights</h3>
+              <div className="text-sm text-gray-400">
+                <ul className="list-disc pl-6 space-y-2">
+                  {insights.split("\n").map((line, index) => (
+                    <li key={index}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Recommendations */}
+            <div className="max-w-2xl mx-auto p-6 bg-gray-700 rounded-lg shadow-lg mt-8">
+              <h3 className="text-lg font-semibold text-white mb-4">Recommendations</h3>
+              <div className="text-sm text-gray-400">
+                {recommendations.length > 0 ? (
+                  <div className="flex space-x-6 overflow-x-auto">
+                    {recommendations.map((rec, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-600 p-4 rounded-lg shadow-md hover:bg-gray-500 transition-all duration-300 w-64"
+                      >
+                        <p className="text-center text-white">{rec}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p>No recommendations available.</p>
+                )}
+              </div>
+            </div>
+          </>
         )}
       </main>
     </div>
